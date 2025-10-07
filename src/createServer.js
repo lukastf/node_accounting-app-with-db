@@ -13,14 +13,36 @@ function createServer() {
   app.use(bodyParser.json());
 
   app.post('/users', async (req, res) => {
-    const { name } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ message: 'Missing name' });
-    }
-
     try {
-      const newUser = await User.create({ name });
+      // Verifica se req.body existe e é um objeto
+      if (!req.body || typeof req.body !== 'object') {
+        return res.status(400).json({ message: 'Invalid request body' });
+      }
+
+      const { name } = req.body;
+
+      // Validação passo a passo
+      if (name === undefined) {
+        return res.status(400).json({ message: 'Name field is required' });
+      }
+
+      if (name === null) {
+        return res.status(400).json({ message: 'Name cannot be null' });
+      }
+
+      if (typeof name !== 'string') {
+        return res.status(400).json({ message: 'Name must be a string' });
+      }
+
+      const trimmedName = name.trim();
+
+      if (trimmedName === '') {
+        return res.status(400).json({
+          message: 'Name cannot be empty or only whitespace',
+        });
+      }
+
+      const newUser = await User.create({ name: trimmedName });
 
       res.status(201).json(newUser);
     } catch (error) {
@@ -52,20 +74,44 @@ function createServer() {
   });
 
   app.patch('/users/:id', async (req, res) => {
-    const { name } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ message: 'Missing name' });
-    }
-
     try {
+      // Verifica se req.body existe
+      if (!req.body || typeof req.body !== 'object') {
+        return res.status(400).json({ message: 'Invalid request body' });
+      }
+
+      const { name } = req.body;
+
+      // A mesma validação robusta
+      if (name === undefined) {
+        return res.status(400).json({ message: 'Name field is required' });
+      }
+
+      if (name === null) {
+        return res.status(400).json({ message: 'Name cannot be null' });
+      }
+
+      if (typeof name !== 'string') {
+        return res.status(400).json({ message: 'Name must be a string' });
+      }
+
+      const trimmedName = name.trim();
+
+      if (trimmedName === '') {
+        return res.status(400).json({
+          message: 'Name cannot be empty or only whitespace',
+        });
+      }
+
       const user = await User.findByPk(req.params.id);
 
       if (!user) {
         return res.status(404).json({ message: 'User not found' });
       }
-      user.name = name;
+
+      user.name = trimmedName;
       await user.save();
+
       res.json(user);
     } catch (error) {
       res.status(500).json({ message: 'Server error' });

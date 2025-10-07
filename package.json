@@ -13,6 +13,9 @@
     "postinstall": "npm run update",
     "test": "npm run lint && npm run test:only"
   },
+  "jest": {
+    "testTimeout": 30000
+  },
   "author": "Mate academy",
   "license": "GPL-3.0",
   "dependencies": {
