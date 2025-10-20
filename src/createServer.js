@@ -14,20 +14,14 @@ function createServer() {
 
   app.post('/users', async (req, res) => {
     try {
-      // Verifica se req.body existe e é um objeto
       if (!req.body || typeof req.body !== 'object') {
         return res.status(400).json({ message: 'Invalid request body' });
       }
 
       const { name } = req.body;
 
-      // Validação passo a passo
-      if (name === undefined) {
+      if (!name) {
         return res.status(400).json({ message: 'Name field is required' });
-      }
-
-      if (name === null) {
-        return res.status(400).json({ message: 'Name cannot be null' });
       }
 
       if (typeof name !== 'string') {
@@ -75,20 +69,14 @@ function createServer() {
 
   app.patch('/users/:id', async (req, res) => {
     try {
-      // Verifica se req.body existe
       if (!req.body || typeof req.body !== 'object') {
         return res.status(400).json({ message: 'Invalid request body' });
       }
 
       const { name } = req.body;
 
-      // A mesma validação robusta
-      if (name === undefined) {
+      if (!name) {
         return res.status(400).json({ message: 'Name field is required' });
-      }
-
-      if (name === null) {
-        return res.status(400).json({ message: 'Name cannot be null' });
       }
 
       if (typeof name !== 'string') {
@@ -280,8 +268,18 @@ function createServer() {
       return res.status(400).json({ error: 'Name is required' });
     }
 
+    if (typeof name !== 'string') {
+      return res.status(400).json({ error: 'Name must be a string' });
+    }
+
+    const trimmedName = name.trim();
+
+    if (trimmedName === '') {
+      return res.status(400).json({ error: 'Name cannot be empty' });
+    }
+
     try {
-      const newCategory = await Category.create({ name });
+      const newCategory = await Category.create({ trimmedName });
 
       res.status(201).json(newCategory);
     } catch (err) {
@@ -312,9 +310,19 @@ function createServer() {
       return res.status(400).json({ error: 'Name is required' });
     }
 
+    if (typeof name !== 'string') {
+      return res.status(400).json({ error: 'Name must be a string' });
+    }
+
+    const trimmedName = name.trim();
+
+    if (trimmedName === '') {
+      return res.status(400).json({ error: 'Name cannot be empty' });
+    }
+
     try {
       const [updated] = await Category.update(
-        { name },
+        { name: trimmedName },
         { where: { id: categoryId } },
       );
 
